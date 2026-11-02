@@ -102,3 +102,16 @@ static int parse_args(int argc, char *argv[], options *opt)
     }
     return 0;
 }
+// three-letter file type indecator
+static const char *type_string (mode_t mode)
+{
+    if(S_ISREG(mode)) return "REG";
+    else if (S_ISDIR(mode)) return "DIR";
+    else if (S_ISLNK(mode)) return "LNK";
+    else if (S_ISCHR(mode)) return "CHR";
+    else if (S_ISBLK(mode)) return "BLK";
+    else if (S_ISFIFO(mode)) return "FIF";
+    else if (IS_SOCK(mode)) return "SOC";
+    return "???";
+
+}
