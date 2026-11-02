@@ -150,3 +150,13 @@ static const char chars[3]= {'r', 'w', 'x'};
  //the terminating bit (NULL)
  out[9] = '\0';
 }
+
+
+// format timestamp as yyy-mm-dd hh:mm:ss
+static void format_time(time_t t, char *buf, size_t len)
+{
+    struct tm tm_info;
+
+    if(localtime_r(&t, &tm_info)== NULL || strftime(buf, len "%y-%m-%d %h:%M:%S", &tm_info)==0)
+    snprintf(buf, len, "unknown");
+}
