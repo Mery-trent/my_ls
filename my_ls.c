@@ -61,4 +61,19 @@ static int parse_args(int argc, char *argv[], options *opt)
     memset(opt, 0, sizeof(*opt));
     strcpy(opt-> dir, "./");  //default, current directory
 
+    // case of even number of args, directory is provided
+    if (argc % 2 ==0 ){
+
+        //check wether the path provided is accepted in terms of length
+        if(strlen(argv[argc-1])>MAX_PATH_LEN){
+            fprintf(stderr, "Error: path is too long (max %d characters)\n", MAX_PATH_LEN);
+        return -1;
+        }
+        
+        // in case of eccepting the path, copy it to the struc opt
+        strcpy(opt->dir, argv[argc-1]);
+        last_flag_arg = argc - 2; // flags end before the the path
+
+        
+    }
 }
