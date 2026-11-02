@@ -74,6 +74,9 @@ static int parse_args(int argc, char *argv[], options *opt)
         strcpy(opt->dir, argv[argc-1]);
         last_flag_arg = argc - 2; // flags end before the the path
 
-        
+
+    } else{
+        // case of no directory provided
+        last_flag_arg= argc -1; 
     }
 }
