@@ -47,3 +47,18 @@ static void usage(const char *prog)
 {
     fprintf(stderr, "Usage: %s [-o days] [-y days] [-l bytes] [-s bytes] [directory]\n", prog);
 }
+
+/*
+ * Parse argv into an Options struct.
+ * Flags come in (flag, value) pairs; if argc is even, the final
+ * argument is the directory. Returns 0 on success, -1 on error.
+ */
+static int parse_args(int argc, char *argv[], options *opt)
+{
+    int i, last_flag_arg;
+
+    //zeroing the opt fields, to ensure a clean start
+    memset(opt, 0, sizeof(*opt));
+    strcpy(opt-> dir, "./");  //default, current directory
+
+}
