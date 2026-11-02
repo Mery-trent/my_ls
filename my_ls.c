@@ -14,7 +14,7 @@
 // a structure that holds the filter settings parsed from the command line
 typedef struct {
     int use_older; long older_days;  // -o option
-    int use_young; long younger_days;  // -y option
+    int use_younger; long younger_days;  // -y option
     int use_larger; long long larger; // -l option
     int use_smaller; long long smaller; // -s option
     char dir[MAX_PATH_LEN+1]; //target directory  
@@ -79,4 +79,26 @@ static int parse_args(int argc, char *argv[], options *opt)
         // case of no directory provided
         last_flag_arg= argc -1; 
     }
+    
+    // walk through the flag, value pairs 
+    for(i= 1; i< last_flag_arg; i+=2){
+        const char *flag = argv[i];
+        const char *val = argv[i + 1];
+        if(strcmp(flag, "-o")==0){
+            opt -> use_older = 1; opt -> older_days = atol(val);
+        } else if(strcmp(flag, "-y") == 0){
+            opt -> use_younger = 1; opt -> younger_days = atol(val);
+
+        } else if(strcmp(flag, "-l") == 0){
+            opt -> use_larger = 1; opt->larger = atoll(val);
+        
+        }else if (strcmp(flag, "-s") == 0){
+            opt -> use_smaller = 1; opt-> smaller = atoll(val);
+
+        }else{
+            fprintf(stderr, "Error: unknown option '%s'\n", flag);
+            return -1;
+        }
+    }
+    return 0;
 }
