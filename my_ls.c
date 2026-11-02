@@ -117,14 +117,36 @@ static const char *type_string (mode_t mode)
 }
 
 // build a 9 character permission string such as rwxr--r--
-void perm_string(mode_t mode, char out[10])
+static void perm_string(mode_t mode, char out[10])
 {
 // declare an array that holds the actual permissions 
-mode_t bits[9]= {
+static const mode_t bits[9]= {
     S_IRUSR, S_IWUSR, S_IXUSR, 
     S_IRGRP, S_IWGRP, S_IXGRP,
     S_IROTH, S_IWOTH, S_IXOTH
 };
 // declare another array that contain the charachters that would be displayed late
-char chars[3]= {'r', 'w', 'x'}; 
+static const char chars[3]= {'r', 'w', 'x'}; 
+
+/*iterate through the bit array, 
+*check if the permission is set
+* if so, write the correspong character usin the operation (%)
+* to irritate through the chars array, 
+*the result will be as follow,
+ 0 .. 1 ..2 .. 0 and so on */
+ int i; 
+ for (i=0; i<9 ; i++)
+ {
+    // case the permission is set
+    if(mode & bits[i])
+    {
+        // write the corresponding char into the out array (the permission string)
+        out[i] = chars[i%3];
+    }
+    // case of the permission is not set, write '-' to the permission string
+    else
+    out[i]= '-';
+ }
+ //the terminating bit (NULL)
+ out[9] = '\0';
 }
