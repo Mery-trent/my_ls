@@ -41,3 +41,9 @@ int main (int argc, char *argv[]){
     }
     return list_directory(&opt)== 0? EXIT_SUCCESS: EXIT_FAILURE;
 }
+
+// print a short usage msg in case of errors
+static void usage(const char *prog)
+{
+    fprintf(stderr, "Usage: %s [-o days] [-y days] [-l bytes] [-s bytes] [directory]\n", prog);
+}
