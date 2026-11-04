@@ -180,3 +180,40 @@ static int passes_filters(const struct stat *st, const options *opt, time_t now)
     return 0;
   return 1;  
 }
+/* a function that extract information from 
+stat struct and display them on screen 
+in a human readable fromat */
+
+static void print_entry(const char *name, const struct stat *st)
+{
+    // declare char arrays to hold permission string, formatted time, user Id, and  group id 
+    char perms[10], timebuf[32], uidbuf[32], gidbuf[32];
+    //extract user id
+    struct passwd *pw = getpwuid(st-> st_uid);
+   // extract group id
+    struct group *gr = getgrgid(st-> st_gid);
+
+    // call perm_string function to form the
+    // permission string out of the permission passed
+   perm_string(st->st_mode, perms);
+
+   //call time formatter
+   format_time(st->st_mtime, timebuf, sizeof(timebuf));
+    
+   // fall back into numeric id in case of name cannot be resolved
+    if(pw) 
+        snprintf(uidbuf, sizeof(uidbuf), "%s", pw-> pw_name);
+    else
+        snprintf(uidbuf, sizeof(uidbuf),"%u", (unsigned) st-> st_uid );
+    if (gr)
+        snprintf(gidbuf, sizeof(gidbuf), "%s", gr-> gr_name);
+    else 
+        snprintf(gidbuf, sizeof(gidbuf), "%u"(unsigned) st-> st_gid);        
+
+   printf("%lu %s %s %s %s %s %lld %s \n",
+           (unsigned long) st-> st_ino, 
+            type_string (st-> st_mode), 
+           perms, uidbuf, gidbuf, timebuf, 
+            (long long) st-> st_size, name);
+
+ }
