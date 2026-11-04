@@ -158,8 +158,9 @@ static void format_time(time_t t, char *buf, size_t len)
     struct tm tm_info;
 
     if(localtime_r(&t, &tm_info)== NULL ||
-     strftime(buf, len, "%Y-%m-%d %H:%M:%S", &tm_info) == 0);
-     snprintf(buf, len, "unknown");
+     strftime(buf, len, "%Y-%m-%d %H:%M:%S", &tm_info) == 0)
+    { snprintf(buf, len, "unknown");
+    }
 }
 
 /* build the logic of deciding whether
