@@ -217,3 +217,54 @@ static void print_entry(const char *name, const struct stat *st)
             (long long) st-> st_size, name);
 
  }
+ 
+ /* the following function does:
+ * Open the target directory
+ * read every file/ subdirectory inside it
+ * build the full pathname for each entry
+ * get information about that entry using lstat()
+ * Apply any filters using (passes_filters()
+ * Print matching entries using print_entry()
+ * close the directory
+  */
+ static int list_directory(const options *opt)
+ {
+    DIR *dp;
+    struct dirent *entry;
+    struct stat st;
+    char bath[MAX_PATH_LEN + 1];
+    size_t dir_len = strlen(opt-> dir);
+    time_t now = time(NULL);
+
+    if((dp = opendir(opt-> dir))== NULL){
+        perror (opt -> dir);
+        return -1;
+    }
+    while((entry = readdir(dp)) != NULL){
+        int n;
+        // case of the entry omits the "." or ".." entries
+        if(strcmp(entry-> d_name, ".") ==0 || strcmp(entry-> d_name, "..") ==0)
+        continue;
+
+        // join directory and file name using '/'
+        n = snprintf(path, sizeof(path), "%s %s %s", opt->dir, (dirlen > 0 && opt -> dir[dirlen - 1] == '/')? "" : "/", entry ->d_name);
+    
+        // checking if the path is within the accepted length
+        if(n < 0 || (size_t)n > MAX_PATH_LEN){
+            fprintf(stderr, "Skipping, '%s': path is too long \n", entry ->d_name);
+            continue;
+        }
+
+        // lsat() so sympolic links are reported as links, not targets.
+        if( lstat(path, &st) == -1){
+            perror (path);
+            continue;
+        }
+        
+        if (passes_filters(&st, opt, now))
+          print_entry(entry-> d_name, &st)
+
+    }
+    closedir(dp);
+    return 0;
+ }
