@@ -81,25 +81,24 @@ static int parse_args(int argc, char *argv[], options *opt)
     }
     
     // walk through the flag, value pairs 
-    for(i= 1; i< last_flag_arg; i+=2){
-        const char *flag = argv[i];
-        const char *val = argv[i + 1];
-        if(strcmp(flag, "-o")==0){
-            opt -> use_older = 1; opt -> older_days = atol(val);
-        } else if(strcmp(flag, "-y") == 0){
-            opt -> use_younger = 1; opt -> younger_days = atol(val);
-
-        } else if(strcmp(flag, "-l") == 0){
-            opt -> use_larger = 1; opt->larger = atoll(val);
-        
-        }else if (strcmp(flag, "-s") == 0){
-            opt -> use_smaller = 1; opt-> smaller = atoll(val);
-
-        }else{
-            fprintf(stderr, "Error: unknown option '%s'\n", flag);
-            return -1;
+    i=1;
+    while(i<argc){
+        if(argv[i][0]== '-'){
+            if(i + 1 >= argc){
+                fprintf(stderr, "Error: option '%s' needs a value\n", argv[i]);
+                 return -1
+                }
+                // handle flag/ value
+                i += 2;
+        } else {
+            // directory; must be last
+            if(i != argc - 1) return -1;
+            if (strlen(argv[i]) > MAX_PATH_LEN) return -1;
+            strcpy(opt -> dir, argv[i]);
+            i++;
         }
     }
+   
     return 0;
 }
 // three-letter file type indecator
