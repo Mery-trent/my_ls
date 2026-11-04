@@ -157,6 +157,26 @@ static void format_time(time_t t, char *buf, size_t len)
 {
     struct tm tm_info;
 
-    if(localtime_r(&t, &tm_info)== NULL || strftime(buf, len "%y-%m-%d %h:%M:%S", &tm_info)==0)
-    snprintf(buf, len, "unknown");
+    if(localtime_r(&t, &tm_info)== NULL ||
+     strftime(buf, len "%y-%m-%d %h:%M:%S", &tm_info)==0)
+     snprintf(buf, len, "unknown");
+}
+
+/* build the logic of deciding whether
+ a file passes every active filter.
+older: mtime< now-days*86400
+younger: mtime>now - days*86400
+larged: size > value
+smaller: size < value */
+static int passes_filters(const struct stat *st, const options *opt, time_t now)
+{
+    if (opt-> use_older && !(st->st_mtime < now- opt-> older_days * SECONDS_PER_DAY))
+    return 0;
+    if (opt->use_younger && !(st->st_mtime >now - opt->younger_days * SECONDS_PER_DAY))
+    return 0;
+    if(opt-> use_larger && !((long long) st->st_size > opt-> larger))
+    return 0;
+    if (opt->use_smaller && !((long long)st->st_size < opt->smaller))
+    return 0;
+  return 1;  
 }
