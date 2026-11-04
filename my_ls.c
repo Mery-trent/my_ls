@@ -111,7 +111,7 @@ static const char *type_string (mode_t mode)
     else if (S_ISCHR(mode)) return "CHR";
     else if (S_ISBLK(mode)) return "BLK";
     else if (S_ISFIFO(mode)) return "FIF";
-    else if (IS_SOCK(mode)) return "SOC";
+    else if (S_ISSOCK(mode)) return "SOC";
     return "???";
 
 }
@@ -158,7 +158,7 @@ static void format_time(time_t t, char *buf, size_t len)
     struct tm tm_info;
 
     if(localtime_r(&t, &tm_info)== NULL ||
-     strftime(buf, len "%y-%m-%d %h:%M:%S", &tm_info)==0)
+     strftime(buf, len, "%Y-%m-%d %H:%M:%S", &tm_info) == 0);
      snprintf(buf, len, "unknown");
 }
 
@@ -208,7 +208,7 @@ static void print_entry(const char *name, const struct stat *st)
     if (gr)
         snprintf(gidbuf, sizeof(gidbuf), "%s", gr-> gr_name);
     else 
-        snprintf(gidbuf, sizeof(gidbuf), "%u"(unsigned) st-> st_gid);        
+        snprintf(gidbuf, sizeof(gidbuf), "%u", (unsigned) st-> st_gid);        
 
    printf("%lu %s %s %s %s %s %lld %s \n",
            (unsigned long) st-> st_ino, 
@@ -232,8 +232,8 @@ static void print_entry(const char *name, const struct stat *st)
     DIR *dp;
     struct dirent *entry;
     struct stat st;
-    char bath[MAX_PATH_LEN + 1];
-    size_t dir_len = strlen(opt-> dir);
+    char path[MAX_PATH_LEN + 1];
+    size_t dirlen = strlen(opt-> dir);
     time_t now = time(NULL);
 
     if((dp = opendir(opt-> dir))== NULL){
@@ -247,7 +247,7 @@ static void print_entry(const char *name, const struct stat *st)
         continue;
 
         // join directory and file name using '/'
-        n = snprintf(path, sizeof(path), "%s %s %s", opt->dir, (dirlen > 0 && opt -> dir[dirlen - 1] == '/')? "" : "/", entry ->d_name);
+        n = snprintf(path, sizeof(path), "%s%s%s", opt->dir, (dirlen > 0 && opt->dir[dirlen - 1] == '/')? "" : "/", entry ->d_name);
     
         // checking if the path is within the accepted length
         if(n < 0 || (size_t)n > MAX_PATH_LEN){
@@ -255,14 +255,14 @@ static void print_entry(const char *name, const struct stat *st)
             continue;
         }
 
-        // lsat() so sympolic links are reported as links, not targets.
+        // lstat() so sympolic links are reported as links, not targets.
         if( lstat(path, &st) == -1){
             perror (path);
             continue;
         }
         
         if (passes_filters(&st, opt, now))
-          print_entry(entry-> d_name, &st)
+          print_entry(entry-> d_name, &st);
 
     }
     closedir(dp);
