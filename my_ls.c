@@ -170,9 +170,9 @@ larged: size > value
 smaller: size < value */
 static int passes_filters(const struct stat *st, const options *opt, time_t now)
 {
-    if (opt-> use_older && !(st->st_mtime < now- opt-> older_days * SECONDS_PER_DAY))
+    if (opt-> use_older && !(st->st_mtime < now- (time_t)opt-> older_days * SECONDS_PER_DAY))
     return 0;
-    if (opt->use_younger && !(st->st_mtime >now - opt->younger_days * SECONDS_PER_DAY))
+    if (opt->use_younger && !(st->st_mtime >now - (time_t)opt->younger_days * SECONDS_PER_DAY))
     return 0;
     if(opt-> use_larger && !((long long) st->st_size > opt-> larger))
     return 0;
