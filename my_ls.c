@@ -7,6 +7,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>
+#include <errno.h>
 
 #define MAX_PATH_LEN 4096
 #define SECONDS_PER_DAY 86400L //Leap years/seconds are igored
@@ -24,12 +25,13 @@ typedef struct {
 // ****function prototypes********
 static void usage(const char *prog); 
 static int parse_args(int argc, char *argv[], options *opt);
+static int parse_long(const char *s, long long *out);
 static const char *type_string(mode_t mode);
 static void perm_string (mode_t mode, char out[10]);
 static void format_time(time_t t, char *buf, size_t len);
 static int passes_filters(const struct stat *st, const options *opt, time_t now);
 static int list_directory(const options *opt);
-
+static void print_entry(const char *name, const struct stat *st);
 // start of main 
 int main (int argc, char *argv[]){
 
@@ -55,52 +57,54 @@ static void usage(const char *prog)
  */
 static int parse_args(int argc, char *argv[], options *opt)
 {
-    int i, last_flag_arg;
-
-    //zeroing the opt fields, to ensure a clean start
+int i = 1;
     memset(opt, 0, sizeof(*opt));
-    strcpy(opt-> dir, "./");  //default, current directory
+    strcpy(opt->dir, "./");
 
-    // case of even number of args, directory is provided
-    if (argc % 2 ==0 ){
-
-        //check wether the path provided is accepted in terms of length
-        if(strlen(argv[argc-1])>MAX_PATH_LEN){
-            fprintf(stderr, "Error: path is too long (max %d characters)\n", MAX_PATH_LEN);
-        return -1;
-        }
-        
-        // in case of eccepting the path, copy it to the struc opt
-        strcpy(opt->dir, argv[argc-1]);
-        last_flag_arg = argc - 2; // flags end before the the path
-
-
-    } else{
-        // case of no directory provided
-        last_flag_arg= argc -1; 
-    }
-    
-    // walk through the flag, value pairs 
-    i=1;
-    while(i<argc){
-        if(argv[i][0]== '-'){
-            if(i + 1 >= argc){
-                fprintf(stderr, "Error: option '%s' needs a value\n", argv[i]);
-                 return -1
-                }
-                // handle flag/ value
-                i += 2;
+    while (i < argc) {
+        if (argv[i][0] == '-') {
+            const char *flag = argv[i];
+            long long v;
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Error: option '%s' needs a value\n", flag);
+                return -1;
+            }
+            if (parse_long(argv[i + 1], &v) != 0) {
+                fprintf(stderr, "Error: invalid value '%s' for %s\n", argv[i + 1], flag);
+                return -1;
+            }
+            if      (strcmp(flag, "-o") == 0) { opt->use_older   = 1; opt->older_days   = (long)v; }
+            else if (strcmp(flag, "-y") == 0) { opt->use_younger = 1; opt->younger_days = (long)v; }
+            else if (strcmp(flag, "-l") == 0) { opt->use_larger  = 1; opt->larger       = v; }
+            else if (strcmp(flag, "-s") == 0) { opt->use_smaller = 1; opt->smaller      = v; }
+            else {
+                fprintf(stderr, "Error: unknown option '%s'\n", flag);
+                return -1;
+            }
+            i += 2;
         } else {
-            // directory; must be last
-            if(i != argc - 1) return -1;
-            if (strlen(argv[i]) > MAX_PATH_LEN) return -1;
-            strcpy(opt -> dir, argv[i]);
+            if (i != argc - 1 || strlen(argv[i]) > MAX_PATH_LEN) {
+                fprintf(stderr, "Error: invalid directory argument\n");
+                return -1;
+            }
+            strcpy(opt->dir, argv[i]);
             i++;
         }
     }
-   
     return 0;
 }
+
+// parse a non-negative integer; returns 0 on success, -1 on bad input
+static int parse_long(const char *s, long long *out)
+{
+    char *end;
+    errno = 0;
+    *out = strtoll(s, &end, 10);
+    if (errno != 0 || end == s || *end != '\0' || *out < 0)
+        return -1;
+    return 0;
+}
+
 // three-letter file type indecator
 static const char *type_string (mode_t mode)
 {
